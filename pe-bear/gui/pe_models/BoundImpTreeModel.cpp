@@ -11,7 +11,7 @@ int BoundImpTreeModel::columnCount(const QModelIndex &parent) const
 	if (!impWrap) return 0;
 	ExeNodeWrapper* entry = impWrap->getEntryAt(0);
 	if (!entry) return 0;
-	uint32_t cntr = entry->getFieldsCount() + ADDED_COLS_NUM;
+	const int cntr = static_cast<int>(entry->getFieldsCount() + static_cast<int>(ADDED_COLS_NUM));
 	return cntr;
 }
 
