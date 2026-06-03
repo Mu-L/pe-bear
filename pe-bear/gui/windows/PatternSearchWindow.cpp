@@ -65,8 +65,11 @@ void PatternSearchWindow::onSearchClicked()
 	MappedExe* exe = m_peHndl->getPe();
 	if (!exe) return;
 
-	const offset_t maxOffset = exe->getContentSize();
 	offset_t offset = startOffsetBox.value();
+	if (this->progressBar.value() == this->progressBar.maximum()) {
+		startOffsetBox.setValue(0);
+		offset = 0;
+	}
 
 	const size_t fullSize = exe->getContentSize();
 	if (offset >= fullSize) return;
