@@ -37,10 +37,11 @@ protected:
 //----
 class DisasmItemDelegate: public QStyledItemDelegate
 {
-    Q_OBJECT
+	Q_OBJECT
 public:
 	DisasmItemDelegate(QObject* parent)
-		: QStyledItemDelegate(parent)
+		: QStyledItemDelegate(parent),
+		m_selectionBgColor(QColor("white")), m_selectionTextColor(QColor("black"))
 	{
 	#if QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
 		validator.setRegularExpression(QRegularExpression("[0-9A-Fa-f]{1,}"));
@@ -49,10 +50,19 @@ public:
 	#endif
 	}
 
-	QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+	QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
+
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+
+	void setSelectionColor(const QColor& bgColor, const QColor& textColor)
+	{
+		m_selectionBgColor = bgColor;
+		m_selectionTextColor = textColor;
+	}
 
 private:
 	QRegularExpressionValidator validator;
+	QColor m_selectionBgColor, m_selectionTextColor;
 };
 
 //--------------------------------------------------------------------
@@ -221,7 +231,7 @@ public:
 
 	Qt::ItemFlags flags(const QModelIndex &index) const;
 
-	uint32_t getCurrentChunkSize(const QModelIndex &index) const;
+	bufsize_t getCurrentChunkSize(const QModelIndex &index) const;
 
 	bool isClickable(const QModelIndex &index) const;
 

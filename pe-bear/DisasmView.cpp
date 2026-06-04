@@ -142,6 +142,31 @@ QWidget* DisasmItemDelegate::createEditor(QWidget *parent, const QStyleOptionVie
 	}
 	return editor;
 }
+
+void DisasmItemDelegate::paint(QPainter* painter,
+	const QStyleOptionViewItem& option,
+	const QModelIndex& index) const
+{
+	QStyleOptionViewItem opt(option);
+	initStyleOption(&opt, index);
+
+	if (opt.state & QStyle::State_Selected)
+	{
+		// Draw custom background
+		painter->fillRect(opt.rect, m_selectionBgColor);
+
+		// Tell Qt the item is not selected anymore
+		// so it won't draw its own selection background
+		opt.state &= ~QStyle::State_Selected;
+
+		// Use desired text color
+		opt.palette.setColor(QPalette::Text, m_selectionTextColor);
+		opt.palette.setColor(QPalette::WindowText, m_selectionTextColor);
+	}
+
+	QStyledItemDelegate::paint(painter, opt, index);
+}
+
 //---------------------------------------------------------
 
 DisasmTreeView::DisasmTreeView(QWidget *parent)
@@ -175,7 +200,10 @@ DisasmTreeView::DisasmTreeView(QWidget *parent)
 	setMouseTracking(true);
 	
 	DisasmItemDelegate *delegate = new DisasmItemDelegate(this);
-	setItemDelegate(delegate);
+	if (delegate) {
+		delegate->setSelectionColor(QColor(HEXDMP_HBG), QColor(HEXDMP_HTXT));
+		setItemDelegate(delegate);
+	}
 }
 
 void DisasmTreeView::init()
@@ -499,9 +527,9 @@ void DisasmTreeView::setModel(DisasmModel *model)
 
 bool DisasmTreeView::markBranching(QModelIndex index)
 {
-	if (!index.isValid()) return false;
-	if (!this->myModel->myPeHndl || !this->myModel->m_PE) return false;
-
+	if (!index.isValid() || !this->myModel->myPeHndl || !this->myModel->m_PE) {
+		return false;
+	}
 	offset_t currentRva = this->myModel->getRvaAt(index.row());
 	if (this->myModel->m_PE->toRaw(currentRva, Executable::RVA) == INVALID_ADDR) return false; //unmapped area
 
@@ -515,9 +543,9 @@ bool DisasmTreeView::markBranching(QModelIndex index)
 
 void DisasmTreeView::followBranching(QModelIndex index)
 {
-	if (!index.isValid()) return;
-	if (!this->myModel->myPeHndl || !this->myModel->m_PE) return;
-
+	if (!index.isValid() || !this->myModel->myPeHndl || !this->myModel->m_PE) {
+		return;
+	}
 	offset_t targetRva = this->myModel->getTargetRVA(index);
 	if (targetRva == INVALID_ADDR) {
 		return;
@@ -539,26 +567,25 @@ void DisasmTreeView::mouseMoveEvent(QMouseEvent *event)
 {
 	if (!myModel) return;
 
-	QModelIndex index = this->indexAt(event->pos());
-	emitArgsRVA(index);
+	const QModelIndex index = this->indexAt(event->pos());
 
+	Qt::CursorShape cursor = Qt::ArrowCursor;
 	if (index.column() == DisasmView::DISASM_COL || index.column() == DisasmView::ICON_COL) {
 		if (myModel->isClickable(index)) {
-			this->setCursor(Qt::PointingHandCursor);
-			return;
+			cursor = Qt::PointingHandCursor;
 		}
 	}
-	this->setCursor(Qt::ArrowCursor);
+	this->setCursor(cursor);
+	emitArgsRVA(index);
 }
 
 void DisasmTreeView::mousePressEvent(QMouseEvent *event)
 {
-	QModelIndex index = this->indexAt(event->pos());
+	const QModelIndex index = this->indexAt(event->pos());
 	emit currentRvaChanged(myModel->getRvaAt(index.row()));
 	emitArgsRVA(index);
 
-	int column = index.column();
-
+	const int column = index.column();
 	if (this->markBranching(index) && column == DisasmView::ICON_COL) {
 		followBranching(index);
 	}
@@ -905,7 +932,7 @@ bool DisasmModel::isClickable(const QModelIndex &index) const
 	return myDisasm.isFollowable(index.row());
 }
 
-uint32_t DisasmModel::getCurrentChunkSize(const QModelIndex &index) const
+bufsize_t DisasmModel::getCurrentChunkSize(const QModelIndex &index) const
 {
 	if (!index.isValid()) return 0;
 	return myDisasm.getChunkSize(index.row());
@@ -918,7 +945,9 @@ offset_t DisasmModel::getTargetRVA(const QModelIndex &index) const
 	}
 	bool isOk = false;
 	offset_t targetRva = myDisasm.getTargetRVA(index.row(), isOk);
-	if (targetRva == INVALID_ADDR || !isOk) return INVALID_ADDR;
+	if (targetRva == INVALID_ADDR || !isOk) {
+		return INVALID_ADDR;
+	}
 	return targetRva;
 }
 
@@ -929,7 +958,9 @@ offset_t DisasmModel::getArgRVA(const int argNum, const QModelIndex &index) cons
 	}
 	bool isOk = false;
 	offset_t argRva = myDisasm.getArgRVA(index.row(), argNum, isOk);
-	if (argRva == INVALID_ADDR || !isOk) return INVALID_ADDR;
+	if (argRva == INVALID_ADDR || !isOk) {
+		return INVALID_ADDR;
+	}
 	return argRva;
 }
 
@@ -956,7 +987,6 @@ void DisasmModel::setMarkedAddress(uint64_t cRva, uint64_t tRva)
 {
 	if (!myPeHndl) return;
 	myPeHndl->markedBranching(cRva, tRva);
-	reset();
 }
 
 bool DisasmModel::setHexData(offset_t offset, const size_t bytesCount, const QString &data)
