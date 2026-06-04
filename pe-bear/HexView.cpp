@@ -355,7 +355,7 @@ void HexTableView::updateFollowAction()
 		this->followAddrSubmenu->setTitle(defaultDesc);
 		return;
 	}
-	followAddrSubmenu->setTitle("Follow: 0x" + QString::number(addr, 16));
+	followAddrSubmenu->setTitle("Follow: [0x" + QString::number(addr, 16).toUpper() + "] as");
 }
 
 offset_t HexTableView::getSelectedAddress()
