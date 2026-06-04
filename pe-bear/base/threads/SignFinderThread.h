@@ -65,7 +65,7 @@ public:
 		: m_Buf(buf), startOffset(offset)
 	{
 	}
-	
+
 	void setStartOffset(offset_t _startOffset)
 	{
 		this->startOffset = _startOffset;
@@ -74,9 +74,11 @@ public:
 			thread->setStartOffset(_startOffset);
 		}
 	}
-	
+
 	bool setupThread()
 	{
+		if (this->myThread) return false; //already set up
+		
 		SignFinderThread *thread = new SignFinderThread(m_Buf, m_patternFinder, m_matched, startOffset);
 
 		this->myThread = thread;

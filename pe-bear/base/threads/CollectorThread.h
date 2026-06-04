@@ -55,8 +55,8 @@ public:
 	CollectorThreadManager() : QObject(), myThread(nullptr), isQueued(false)
 	{
 	}
-	
-	~CollectorThreadManager()
+
+	virtual ~CollectorThreadManager()
 	{
 		deleteThread();
 	}
@@ -67,17 +67,16 @@ public:
 			this->myThread->stop();
 		}
 	}
-	
+		
 	void deleteThread()
 	{
-		if (this->myThread) {
-			this->myThread->stop();
-			while (myThread->isFinished() == false) {
-				myThread->wait();
-			}
-			delete myThread;
-			myThread = nullptr;
-		}
+	    if (!myThread) return;
+
+	    myThread->stop();
+	    myThread->wait();
+
+	    delete myThread;
+	    myThread = nullptr;
 	}
 	
 	bool recreateThread()
