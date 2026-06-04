@@ -50,6 +50,8 @@ public:
 	}
 
 protected:
+	virtual void connectSignals();
+
 	Executable::addr_type addrType;
 
 private:
