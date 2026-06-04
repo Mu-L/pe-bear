@@ -7,9 +7,25 @@ HexDumpModel::HexDumpModel(PeHandler *peHndl, bool isHexFormat, QObject *parent)
 	: PeTableModel(peHndl, parent),
 	showHex(isHexFormat),
 	startOff(0), endOff(0), pageSize(PREVIEW_SIZE),
-	addrType(Executable::RAW)
+	addrType(Executable::RAW),
+	m_lastRowCount(-1)
 {
 	connectSignals();
+}
+
+void HexDumpModel::onNeedReset()
+{
+	const int rows = this->rowCount(QModelIndex());
+	if (rows != m_lastRowCount) {
+		m_lastRowCount = rows;
+		reset();
+		emit modelUpdated();
+		return;
+	}
+	const int cols = this->columnCount(QModelIndex());
+	if (rows > 0 && cols > 0) {
+		emit dataChanged(this->index(0, 0, QModelIndex()), this->index(rows - 1, cols - 1, QModelIndex()));
+	}
 }
 
 void HexDumpModel::connectSignals()

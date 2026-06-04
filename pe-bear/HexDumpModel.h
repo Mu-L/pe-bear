@@ -17,6 +17,10 @@ public slots:
 
 	void setShownContent(offset_t start, bufsize_t size);
 
+	// Override: refresh in place instead of a full reset when the grid layout is
+	// unchanged, so open cell editors are never released during (fast) editing.
+	virtual void onNeedReset();
+
 public:
 	HexDumpModel(PeHandler *peHndl, bool isHex, QObject *parent = 0);
 	
@@ -59,6 +63,7 @@ private:
 	bool showHex;
 	offset_t startOff, endOff;
 	bufsize_t pageSize;
+	int m_lastRowCount; // tracks layout changes for onNeedReset()
 
 friend class HexTableView;
 friend class OffsetHeader;
