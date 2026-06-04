@@ -66,6 +66,16 @@ public:
 	{
 	}
 
+	~SignFinderThreadManager()
+	{
+		// Stop and join the worker thread here, while m_patternFinder and
+		// m_matched are still alive. The thread holds references to them
+		// (m_signFinder, m_matched), and they are destroyed before the base
+		// class ~CollectorThreadManager() would otherwise join the thread,
+		// causing a use-after-free if a search is still running on close.
+		deleteThread();
+	}
+
 	void setStartOffset(offset_t _startOffset)
 	{
 		this->startOffset = _startOffset;
