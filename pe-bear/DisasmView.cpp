@@ -127,10 +127,12 @@ QWidget* DisasmItemDelegate::createEditor(QWidget *parent, const QStyleOptionVie
 	lineEdit->setFrame(false);
 	
 	QTableView *parentView = qobject_cast<QTableView*>(this->parent());
-	DisasmModel *myModel = (!parentView) ? NULL : qobject_cast<DisasmModel*>(parentView->model());
+	DisasmModel* myModel = parentView ? qobject_cast<DisasmModel*>(parentView->model()) : nullptr;
 	if (myModel) {
 		QFont littleFont(myModel->getSettings()->myFont);
-		littleFont.setPointSize(littleFont.pointSize() + 2);
+		if (littleFont.pointSize() > 0) { // if font size is set in pixels it will return (-1)
+			littleFont.setPointSize(littleFont.pointSize() + 2);
+		}
 		littleFont.setBold(true);
 		lineEdit->setFont(littleFont);
 		
